@@ -154,9 +154,13 @@ class MyHomePage extends StatelessWidget {
               // Center is a layout widget. It takes a single child and positions it
               // in the middle of the parent.
               children: [
-                JsonViewer(testObj),
+                JsonViewer(testObj, onValueLongPress: (v) {
+                 print(v.toString());
+                }),
                 Text('Array example'),
-                JsonViewer(testArray)
+                JsonViewer(testArray, onValueLongPress: (v) {
+                  print(v.toString());
+                })
               ]),
         ));
   }

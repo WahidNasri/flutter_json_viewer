@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 class JsonViewer extends StatefulWidget {
   final dynamic jsonObj;
-  JsonViewer(this.jsonObj);
+  final Function(dynamic) onValueLongPress;
+  JsonViewer(this.jsonObj, {required this.onValueLongPress});
   @override
   _JsonViewerState createState() => _JsonViewerState();
 }
@@ -12,16 +13,16 @@ class JsonViewer extends StatefulWidget {
 class _JsonViewerState extends State<JsonViewer> {
   @override
   Widget build(BuildContext context) {
-    return getContentWidget(widget.jsonObj);
+    return getContentWidget(widget.jsonObj, widget.onValueLongPress);
   }
 
-  static getContentWidget(dynamic content) {
+  static getContentWidget(dynamic content, Function(dynamic) onValueLongPress) {
     if (content == null)
       return Text('{}');
     else if (content is List) {
-      return JsonArrayViewer(content, notRoot: false);
+      return JsonArrayViewer(content, notRoot: false, onValueLongPress: onValueLongPress);
     } else {
-      return JsonObjectViewer(content, notRoot: false);
+      return JsonObjectViewer(content, notRoot: false, onValueLongPress: onValueLongPress);
     }
   }
 }
@@ -29,8 +30,9 @@ class _JsonViewerState extends State<JsonViewer> {
 class JsonObjectViewer extends StatefulWidget {
   final Map<String, dynamic> jsonObj;
   final bool notRoot;
+  final Function(dynamic) onValueLongPress;
 
-  JsonObjectViewer(this.jsonObj, {this.notRoot: false});
+  JsonObjectViewer(this.jsonObj, {this.notRoot: false, required this.onValueLongPress});
 
   @override
   JsonObjectViewerState createState() => new JsonObjectViewerState();
@@ -45,14 +47,14 @@ class JsonObjectViewerState extends State<JsonObjectViewer> {
       return Container(
         padding: EdgeInsets.only(left: 14.0),
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, children: _getList()),
+            crossAxisAlignment: CrossAxisAlignment.start, children: _getList(widget.onValueLongPress)),
       );
     }
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start, children: _getList());
+        crossAxisAlignment: CrossAxisAlignment.start, children: _getList(widget.onValueLongPress));
   }
 
-  _getList() {
+  _getList(Function(dynamic) onValueLongPress) {
     List<Widget> list = [];
     for (MapEntry entry in widget.jsonObj.entries) {
       bool ex = isExtensible(entry.value);
@@ -89,22 +91,28 @@ class JsonObjectViewerState extends State<JsonObjectViewer> {
             style: TextStyle(color: Colors.grey),
           ),
           const SizedBox(width: 3),
-          getValueWidget(entry)
+          InkWell(
+            onLongPress: (){
+              onValueLongPress(entry.value);
+            },
+            child:  getValueWidget(entry)
+          )
+
         ],
       ));
       list.add(const SizedBox(height: 4));
       if (openFlag[entry.key] ?? false) {
-        list.add(getContentWidget(entry.value));
+        list.add(getContentWidget(entry.value, onValueLongPress));
       }
     }
     return list;
   }
 
-  static getContentWidget(dynamic content) {
+  static getContentWidget(dynamic content, Function(dynamic) onValueLongPress) {
     if (content is List) {
-      return JsonArrayViewer(content, notRoot: true);
+      return JsonArrayViewer(content, notRoot: true, onValueLongPress: onValueLongPress,);
     } else {
-      return JsonObjectViewer(content, notRoot: true);
+      return JsonObjectViewer(content, notRoot: true, onValueLongPress: onValueLongPress);
     }
   }
 
@@ -226,8 +234,9 @@ class JsonArrayViewer extends StatefulWidget {
   final List<dynamic> jsonArray;
 
   final bool notRoot;
+  final Function(dynamic) onValueLongPress;
 
-  JsonArrayViewer(this.jsonArray, {this.notRoot: false});
+  JsonArrayViewer(this.jsonArray, {this.notRoot: false, required this.onValueLongPress});
 
   @override
   _JsonArrayViewerState createState() => new _JsonArrayViewerState();
@@ -285,12 +294,18 @@ class _JsonArrayViewerState extends State<JsonArrayViewer> {
             style: TextStyle(color: Colors.grey),
           ),
           const SizedBox(width: 3),
-          getValueWidget(content, i)
+          InkWell(
+            onLongPress: (){
+              widget.onValueLongPress(content);
+            },
+            child: getValueWidget(content, i),
+          )
+
         ],
       ));
       list.add(const SizedBox(height: 4));
       if (openFlag[i]) {
-        list.add(JsonObjectViewerState.getContentWidget(content));
+        list.add(JsonObjectViewerState.getContentWidget(content, widget.onValueLongPress));
       }
       i++;
     }
