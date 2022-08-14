@@ -21,8 +21,10 @@ class _JsonViewerState extends State<JsonViewer> {
       return Text('{}');
     else if (content is List) {
       return JsonArrayViewer(content, notRoot: false, onValueLongPress: onValueLongPress);
-    } else {
+    } else if(content is Map<String, dynamic>){
       return JsonObjectViewer(content, notRoot: false, onValueLongPress: onValueLongPress);
+    } else{
+      return Text(content);
     }
   }
 }
